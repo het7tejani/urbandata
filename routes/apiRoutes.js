@@ -503,6 +503,26 @@ router.get('/products/:id', async (req, res) => {
 });
 
 
+// PATCH /api/products/:id/extracted - Update extracted image cache
+router.patch('/products/:id/extracted', async (req, res) => {
+    try {
+        const { extractedImage } = req.body;
+        const product = await Product.findByIdAndUpdate(
+            req.params.id, 
+            { extractedImage }, 
+            { new: true }
+        );
+        if (!product) {
+            return res.status(404).json({ msg: 'Product not found' });
+        }
+        res.json({ message: 'Extraction cached successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
 // POST /api/products - Create a new product (ADMIN ONLY)
 router.post('/products', authMiddleware, adminMiddleware, async (req, res) => {
     try {
