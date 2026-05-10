@@ -409,11 +409,23 @@ router.get('/products', async (req, res) => {
             sortOption.createdAt = -1;
         }
 
-        let query = Product.find(filter).sort(sortOption);
+        let query = Product.find(filter).select('-extractedImage').sort(sortOption);
         if (limit) query = query.limit(parseInt(limit));
 
         const products = await query;
         res.json(products);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// GET /api/products/:id - Get single product details (including heavy extractedImage)
+router.get('/products/:id', async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+        res.json(product);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
