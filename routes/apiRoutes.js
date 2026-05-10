@@ -9,6 +9,7 @@ import Wishlist from '../models/wishlistModel.js';
 import Look from '../models/lookModel.js';
 import Review from '../models/reviewModel.js';
 import Order from '../models/orderModel.js';
+import Moodboard from '../models/moodboardModel.js';
 
 
 const router = express.Router();
@@ -705,6 +706,49 @@ router.put('/orders/:id/status', authMiddleware, adminMiddleware, async (req, re
         } else {
             res.status(404).json({ message: 'Order not found' });
         }
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+// --- MOODBOARD ROUTES ---
+
+// GET /api/moodboards - Get logged in user's moodboards
+router.get('/moodboards', authMiddleware, async (req, res) => {
+    try {
+        const moodboards = await Moodboard.find({ user: req.user.id })
+            .populate('elements.productId', 'name price images');
+        res.json(moodboards);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// POST /api/moodboards - Save/Update a moodboard
+router.post('/moodboards', authMiddleware, async (req, res) => {
+    try {
+        const { title, elements, isPublic, id } = req.body;
+        let moodboard;
+        
+        if (id) {
+            moodboard = await Moodboard.findOneAndUpdate(
+                { _id: id, user: req.user.id },
+                { title, elements, isPublic },
+                { new: true }
+            );
+        } else {
+            moodboard = new Moodboard({
+                user: req.user.id,
+                title,
+                elements,
+                isPublic
+            });
+            await moodboard.save();
+        }
+        res.status(201).json(moodboard);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
