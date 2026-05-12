@@ -238,8 +238,38 @@ router.post('/users/login', async (req, res) => {
         const payload = { user: { id: user.id, role: user.role } };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' }, (err, token) => {
             if (err) throw err;
-            res.json({ token, user: { id: user.id, fullName: user.fullName, username: user.username, email: user.email, role: user.role } });
+            res.json({ token, user: { id: user.id, fullName: user.fullName, username: user.username, email: user.email, role: user.role, addresses: user.addresses, cart: user.cart } });
         });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// GET /api/users/profile - Get current user profile
+router.get('/users/profile', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).populate('cart.product');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// PUT /api/users/profile - Update user profile (addresses/cart)
+router.put('/users/profile', authMiddleware, async (req, res) => {
+    try {
+        const { addresses, cart } = req.body;
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        if (addresses) user.addresses = addresses;
+        if (cart) user.cart = cart;
+
+        await user.save();
+        res.json(user);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

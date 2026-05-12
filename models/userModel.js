@@ -26,6 +26,19 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    addresses: [{
+        fullName: String,
+        phone: String,
+        street: String,
+        city: String,
+        state: String,
+        zipCode: String,
+        isDefault: { type: Boolean, default: false }
+    }],
+    cart: [{
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        quantity: { type: Number, default: 1 }
+    }]
 }, { timestamps: true });
 
 // Hash password before saving
