@@ -116,25 +116,28 @@ const adminMiddleware = async (req, res, next) => {
 
 
 // --- CHATBOT ROUTE ---
+let cachedProductCatalog = null;
+
 router.post('/chatbot/query', async (req, res) => {
     const { message, history } = req.body;
 
     try {
-        const allProducts = await Product.find({});
-        const productCatalog = allProducts.map(p => ({
-            _id: p._id.toString(),
-            name: p.name,
-            category: p.category,
-            price: p.price,
-            description: p.description
-        }));
+        if (!cachedProductCatalog) {
+            const allProducts = await Product.find({});
+            cachedProductCatalog = allProducts.map(p => ({
+                _id: p._id.toString(),
+                name: p.name,
+                category: p.category,
+                price: p.price
+            }));
+        }
         
         const systemInstruction = `You are "PantryPal", a friendly and helpful AI personal shopper for UrbanPantry, an online store for modern home and kitchen products.
         Your goal is to help users find the perfect products by having a natural conversation.
         You have been provided with the entire product catalog in JSON format below. Use it as your knowledge base to answer questions.
         ---
         PRODUCT CATALOG:
-        ${JSON.stringify(productCatalog)}
+        ${JSON.stringify(cachedProductCatalog)}
         ---
         Based on the user's request, you MUST identify suitable products and recommend them.
         When you recommend products, you MUST include their "_id" in the "recommendedProductIds" array in your response.
