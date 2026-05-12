@@ -10,10 +10,67 @@ import Look from '../models/lookModel.js';
 import Review from '../models/reviewModel.js';
 import Order from '../models/orderModel.js';
 import Moodboard from '../models/moodboardModel.js';
+import OTP from '../models/otpModel.js';
 
 
 const router = express.Router();
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+
+// --- OTP ROUTES ---
+// Generate and Send OTP
+router.post('/otp/send', async (req, res) => {
+    const { phone } = req.body;
+
+    if (!phone) {
+        return res.status(400).json({ message: 'Phone number is required' });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    try {
+        // Clear previous OTPs for this phone
+        await OTP.deleteMany({ phone });
+
+        // Save new OTP
+        await OTP.create({ phone, otp });
+
+        // --- REAL SMS SENDING LOGIC WOULD GO HERE ---
+        // Example with Twilio:
+        // client.messages.create({ body: `Your UrbanPantry OTP is ${otp}`, from: '+1234567890', to: phone });
+        
+        console.log(`[DEBUG] OTP for ${phone}: ${otp}`);
+
+        // In production, REMOVE mockOtp from response
+        res.status(200).json({ message: 'OTP sent successfully', mockOtp: otp }); 
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Verify OTP
+router.post('/otp/verify', async (req, res) => {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+        return res.status(400).json({ message: 'Phone and OTP are required' });
+    }
+
+    try {
+        const otpRecord = await OTP.findOne({ phone, otp });
+
+        if (otpRecord) {
+            // Valid OTP
+            await OTP.deleteMany({ phone }); // Remove after use
+            res.status(200).json({ message: 'OTP verified successfully' });
+        } else {
+            res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 
 // --- AUTH MIDDLEWARE ---
