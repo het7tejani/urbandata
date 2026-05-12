@@ -165,7 +165,7 @@ router.post('/chatbot/query', async (req, res) => {
         
         const ai = getAi();
         const result = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-1.5-flash',
             contents: fullPrompt, // Simplified to a single string prompt
             config: {
                 systemInstruction,
@@ -190,7 +190,11 @@ router.post('/chatbot/query', async (req, res) => {
 
     } catch (error) {
         console.error('Error with Gemini API:', error);
-        const errorMessage = error.message || 'Sorry, I am having trouble connecting to my brain. Please try again later.';
+        
+        let errorMessage = 'Sorry, I am currently assisting many customers and my circuits are a bit overloaded! Please try again in a few moments.';
+        if (error.message && (error.message.includes('API key') || error.message.includes('PERMISSION_DENIED'))) {
+             errorMessage = 'My brain is currently disconnected! The AI API key has expired or is invalid. Please check the server configuration.';
+        }
         res.status(500).json({ message: errorMessage });
     }
 });
