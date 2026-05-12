@@ -9,6 +9,7 @@ const moodboardSchema = new mongoose.Schema({
     title: { type: String, required: true, default: 'My Moodboard' },
     elements: [{
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        customImage: { type: String }, // Store base64 or URL for custom media
         x: { type: Number, default: 0 },
         y: { type: Number, default: 0 },
         scale: { type: Number, default: 1 },
