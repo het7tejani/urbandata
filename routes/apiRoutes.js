@@ -14,7 +14,13 @@ import OTP from '../models/otpModel.js';
 
 
 const router = express.Router();
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiInstance = null;
+const getAi = () => {
+    if (!aiInstance) {
+        aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return aiInstance;
+};
 
 
 // --- OTP ROUTES ---
@@ -157,6 +163,7 @@ router.post('/chatbot/query', async (req, res) => {
             .map(msg => `${msg.sender === 'ai' ? 'PantryPal' : 'User'}: ${msg.text}`)
             .join('\n') + `\nUser: ${message}`;
         
+        const ai = getAi();
         const result = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: fullPrompt, // Simplified to a single string prompt
