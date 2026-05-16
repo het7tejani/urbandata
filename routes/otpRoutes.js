@@ -25,7 +25,7 @@ router.post('/send', async (req, res) => {
         // Example with Twilio:
         // client.messages.create({ body: `Your UrbanPantry OTP is ${otp}`, from: '+1234567890', to: phone });
         
-        console.log(`[DEBUG] OTP for ${phone}: ${otp}`);
+
 
         res.status(200).json({ message: 'OTP sent successfully', mockOtp: otp }); // mockOtp returned only for testing
     } catch (err) {

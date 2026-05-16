@@ -46,7 +46,7 @@ router.post('/otp/send', async (req, res) => {
         // Example with Twilio:
         // client.messages.create({ body: `Your UrbanPantry OTP is ${otp}`, from: '+1234567890', to: phone });
         
-        console.log(`[DEBUG] OTP for ${phone}: ${otp}`);
+
 
         // In production, REMOVE mockOtp from response
         res.status(200).json({ message: 'OTP sent successfully', mockOtp: otp }); 
@@ -92,10 +92,15 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
+        if (!process.env.JWT_SECRET) {
+            console.error('CRITICAL: JWT_SECRET is not defined in environment variables');
+            return res.status(500).json({ message: 'Server configuration error' });
+        }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded.user;
         next();
     } catch (err) {
+        console.error('JWT Verification Error:', err.message);
         res.status(401).json({ message: 'Token is not valid' });
     }
 };
@@ -239,13 +244,13 @@ router.post('/users/login', async (req, res) => {
         const user = await User.findOne({ email: new RegExp('^' + email + '$', 'i') }).select('+password');
         
         if (!user) {
-            console.log(`[AUTH DEBUG] Login attempt for non-existent user: ${email}`);
+
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
-            console.log(`[AUTH DEBUG] Password mismatch for user: ${email}`);
+
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         
@@ -601,19 +606,6 @@ router.post('/products/:id/reviews', authMiddleware, async (req, res) => {
 });
 
 
-// GET /api/products/:id - Get a single product by ID
-router.get('/products/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ msg: 'Product not found' });
-        }
-        res.json(product);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
 
 
 // PATCH /api/products/:id/extracted - Update extracted image cache

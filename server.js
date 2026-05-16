@@ -1,31 +1,27 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import fs from 'fs';
-import apiRoutes from './routes/apiRoutes.js';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 const backendEnvPath = path.resolve(__dirname, '.env');
 const parentEnvPath = path.resolve(__dirname, '../.env');
 
 if (fs.existsSync(backendEnvPath)) {
-  console.log('[DEBUG] Loading .env file from backend directory.');
   dotenv.config({ path: backendEnvPath });
 } else if (fs.existsSync(parentEnvPath)) {
-  console.log('[DEBUG] Loading .env file from parent (online) directory.');
   dotenv.config({ path: parentEnvPath });
-} else {
-  console.log('[DEBUG] No .env file found in common directories (online/ or online/backend/).');
 }
 
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import apiRoutes from './routes/apiRoutes.js';
 
-console.log(`[DEBUG] Loaded API_KEY: ${process.env.API_KEY ? '******' + process.env.API_KEY.slice(-4) : 'undefined'}`);
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
